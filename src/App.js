@@ -1,27 +1,25 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-import bg from './images/hero0.png'
-import Header from './components/Header';
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import Header from "./components/Header";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import ResetPassword from "./components/ResetPassword";
+import Footer from "./components/Footer";
 
 function App() {
-  const style = {
-    backgroundImage: `url(${bg})`,
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-  }
   return (
-    <main className="h-[75vh] w-screen" style={style}>
-      <Header />
-      <div className='h-full w-full text text-center flex flex-col items-center justify-center px-[4rem]'>
-        <h1 className='text-[#FFFFFF] font-bold text-[5rem]'>Welcome to LitLink</h1>
-        <h3 className='text-white text-[2rem] font-thin'>Community for All Book Lovers</h3>
-      </div>
-    </main>
-    
-  )
+    <Router>
+      <Routes>
+        <Route path="/login" element={ <> <Header /> <Login /> </> } />
+        <Route path="/register" element={ <> <Header /> <Register /> </> } />
+        <Route path="/reset-password" element={ <> <Header /> <ResetPassword /> </> } />
+      </Routes>
+      <Footer />
+    </Router>
+  );
 }
 
-export default App;
 
+export default App;
