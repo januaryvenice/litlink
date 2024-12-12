@@ -7,11 +7,13 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import ResetPassword from "./components/ResetPassword";
 import Footer from "./components/Footer";
+import LandingPage from "./components/LandingPage";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={ <> <Header /> <LandingPage /> </> } />
         <Route path="/login" element={ <> <Header /> <Login /> </> } />
         <Route path="/register" element={ <> <Header /> <Register /> </> } />
         <Route path="/reset-password" element={ <> <Header /> <ResetPassword /> </> } />
