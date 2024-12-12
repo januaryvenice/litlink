@@ -8,6 +8,8 @@ import Register from "./components/Register";
 import ResetPassword from "./components/ResetPassword";
 import Footer from "./components/Footer";
 import LandingPage from "./components/LandingPage";
+import About from "./components/About";
+import AboutUsHeader from "./components/AboutUsHeader";
 
 function App() {
   return (
@@ -17,6 +19,7 @@ function App() {
         <Route path="/login" element={ <> <Header /> <Login /> </> } />
         <Route path="/register" element={ <> <Header /> <Register /> </> } />
         <Route path="/reset-password" element={ <> <Header /> <ResetPassword /> </> } />
+        <Route path="/about" element={ <> <AboutUsHeader /> <About /> </> } />
       </Routes>
       <Footer />
     </Router>
