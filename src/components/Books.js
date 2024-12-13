@@ -11,7 +11,7 @@ const Books = () => {
   const navigate = useNavigate(); 
   const categories = [
     { title: "Fiction", image: fictionImg, route: "/fiction" },
-    { title: "Non Fiction", image: nonFictionImg, route: "/non-fiction" },
+    { title: "Non-Fiction", image: nonFictionImg, route: "/non-fiction" },
     { title: "Romance", image: romanceImg, route: "/romance" },
     { title: "Young Adult", image: youngAdultImg, route: "/young-adult" },
     { title: "Fantasy", image: fantasyImg, route: "/fantasy" },
