@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import bg from '../images/hero0.png';
+import { HiMenu, HiX } from 'react-icons/hi';
 
 const AboutUsHeader = ({ children }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   const style = {
     backgroundImage: `url(${bg})`,
     backgroundSize: "cover",
@@ -24,50 +31,64 @@ const AboutUsHeader = ({ children }) => {
             </NavLink>
           </h1>
         </div>
-        <ul className="flex items-center justify-center space-x-10 flex-1">
-          <li>
+
+        {/* Hamburger Button for Mobile */}
+        <button
+          onClick={toggleMenu}
+          className="sm:hidden text-white text-2xl focus:outline-none"
+        >
+          {isMenuOpen ? <HiX /> : <HiMenu />}
+        </button>
+
+        {/* Navbar Links */}
+        <ul
+          className={`${
+            isMenuOpen ? "block" : "hidden"
+          } absolute top-[4rem] left-0 w-full bg-black sm:static sm:flex sm:space-x-10 sm:bg-transparent sm:items-center sm:justify-center z-30`}
+        >
+          <li className="border-b sm:border-none">
             <NavLink
               to="/"
               className={({ isActive }) =>
                 isActive
-                  ? "text-[#FFD700] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
-                  : "text-[#FFFFFF] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
+                  ? "text-[#FFD700] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
+                  : "text-[#FFFFFF] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
               }
             >
               HOME
             </NavLink>
           </li>
-          <li>
+          <li className="border-b sm:border-none">
             <NavLink
               to="/books"
               className={({ isActive }) =>
                 isActive
-                  ? "text-[#FFD700] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
-                  : "text-[#FFFFFF] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
+                  ? "text-[#FFD700] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
+                  : "text-[#FFFFFF] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
               }
             >
               BOOKS
             </NavLink>
           </li>
-          <li>
+          <li className="border-b sm:border-none">
             <NavLink
               to="/about"
               className={({ isActive }) =>
                 isActive
-                  ? "text-[#FFD700] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
-                  : "text-[#FFFFFF] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
+                  ? "text-[#FFD700] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
+                  : "text-[#FFFFFF] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
               }
             >
               ABOUT
             </NavLink>
           </li>
-          <li>
+          <li className="border-b sm:border-none">
             <NavLink
               to="/account"
               className={({ isActive }) =>
                 isActive
-                  ? "text-[#FFD700] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
-                  : "text-[#FFFFFF] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
+                  ? "text-[#FFD700] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
+                  : "text-[#FFFFFF] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
               }
             >
               ACCOUNT
@@ -78,15 +99,15 @@ const AboutUsHeader = ({ children }) => {
               to="/login"
               className={({ isActive }) =>
                 isActive
-                  ? "text-[#FFD700] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
-                  : "text-[#FFFFFF] font-bold text-[1.1rem] cursor-pointer hover:animate-pulse"
+                  ? "text-[#FFD700] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
+                  : "text-[#FFFFFF] font-bold text-[1.1rem] block p-2 hover:animate-pulse"
               }
             >
               LOGIN
             </NavLink>
           </li>
         </ul>
-        <div className="flex-1"></div>
+        <div className="hidden sm:flex-1"></div>
       </div>
 
       {/* Welcome Section */}
@@ -103,3 +124,5 @@ const AboutUsHeader = ({ children }) => {
 };
 
 export default AboutUsHeader;
+
+

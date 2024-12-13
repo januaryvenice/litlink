@@ -2,29 +2,31 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
+import Layout from "./components/Layout";
 import Header from "./components/Header";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ResetPassword from "./components/ResetPassword";
-import Footer from "./components/Footer";
 import LandingPage from "./components/LandingPage";
 import About from "./components/About";
 import AboutUsHeader from "./components/AboutUsHeader";
+import Account from "./components/Account";
+import AccountHeader from "./components/AccountHeader";
 
-function App() {
-  return (
+const App = () => {
+  return(
     <Router>
       <Routes>
-        <Route path="/" element={ <> <Header /> <LandingPage /> </> } />
-        <Route path="/login" element={ <> <Header /> <Login /> </> } />
-        <Route path="/register" element={ <> <Header /> <Register /> </> } />
-        <Route path="/reset-password" element={ <> <Header /> <ResetPassword /> </> } />
-        <Route path="/about" element={ <> <AboutUsHeader /> <About /> </> } />
+        <Route path="/" element={<Layout headerContent={<Header/>}><LandingPage/></Layout>}/>
+        <Route path="/login" element={<Layout headerContent={<Header/>}><Login/></Layout>}/>
+        <Route path="/register" element={<Layout headerContent={<Header/>}><Register/></Layout>}/>
+        <Route path="/reset-password" element={<Layout headerContent={<Header/>}><ResetPassword/></Layout>}/>
+        <Route path="/about" element={<Layout headerContent={<AboutUsHeader/>}><About/></Layout>}/>
+        <Route path="/account" element={<Layout headerContent={<AccountHeader/>}><Account/></Layout>}/>
       </Routes>
-      <Footer />
     </Router>
   );
-}
+};
 
 
 export default App;

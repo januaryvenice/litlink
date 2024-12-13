@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import bg from '../images/hero0.png';
 import { HiMenu, HiX } from 'react-icons/hi';
 
-const Header = ({ children }) => {
+const AccountHeader = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -113,11 +113,8 @@ const Header = ({ children }) => {
       {/* Welcome Section */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-[4rem] pointer-events-none">
         <h1 className="text-[#FFFFFF] font-bold text-[5rem]">
-          Welcome to LitLink
+          Account Settings
         </h1>
-        <h3 className="text-white text-[2rem] font-thin">
-          Community for All Book Lovers
-        </h3>
       </div>
 
       {/* Main Content */}
@@ -126,5 +123,5 @@ const Header = ({ children }) => {
   );
 };
 
-export default Header;
+export default AccountHeader;
 
