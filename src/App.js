@@ -12,6 +12,9 @@ import About from "./components/About";
 import AboutUsHeader from "./components/AboutUsHeader";
 import Account from "./components/Account";
 import AccountHeader from "./components/AccountHeader";
+import Books from "./components/Books";
+import BooksHeader from "./components/BooksHeader";
+import Fiction from "./components/Fiction";
 
 const App = () => {
   return(
@@ -23,6 +26,8 @@ const App = () => {
         <Route path="/reset-password" element={<Layout headerContent={<Header/>}><ResetPassword/></Layout>}/>
         <Route path="/about" element={<Layout headerContent={<AboutUsHeader/>}><About/></Layout>}/>
         <Route path="/account" element={<Layout headerContent={<AccountHeader/>}><Account/></Layout>}/>
+        <Route path="/books" element={<Layout headerContent={<BooksHeader/>}><Books/></Layout>}/>
+        <Route path="/fiction" element={<Layout headerContent={<BooksHeader/>}><Fiction/></Layout>}/>
       </Routes>
     </Router>
   );
