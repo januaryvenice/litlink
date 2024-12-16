@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { searchBooks } from "../services/api";
 
 const BooksList = () => {
-  const [books, setBooks] = useState([]); // List of books fetched
+  const [book, setBook] = useState([]); // List of books fetched
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const navigate = useNavigate();
@@ -11,19 +11,22 @@ const BooksList = () => {
   const { category } = useParams();
 
   const queryParams = new URLSearchParams(location.search);
-  const searchTerm = queryParams.get("search") || category;
+  const searchTerm = queryParams.get("search") || category || "";
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const { data } = await searchBooks(searchTerm);
-        setBooks(data);
+        const { data } = await searchBooks({ category, search: searchTerm });
+        setBook(data); // Set fetched books to state
       } catch (error) {
         console.error("Error fetching books:", error);
       }
     };
+  
     fetchBooks();
-  }, [searchTerm]);
+  }, [category, searchTerm]);
+  
+  
 
   // Search bar suggestion handler
   const handleInputChange = async (e) => {
@@ -33,7 +36,7 @@ const BooksList = () => {
     if (query.length > 0) {
       try {
         const { data } = await searchBooks(query); // Fetch suggestions dynamically
-        const titles = data.map((book) => book.Title);
+        const titles = [...new Set(data.map((book) => book.Title))]; // Remove duplicates
         setSuggestions(titles);
       } catch (error) {
         console.error("Error fetching suggestions:", error);
@@ -92,8 +95,8 @@ const BooksList = () => {
 
       {/* Books List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-        {books.length > 0 ? (
-          books.map((book) => (
+        {book.length > 0 ? (
+          book.map((book) => (
             <div
               key={book.BookID}
               className="p-4 bg-white rounded-lg shadow-lg flex flex-col items-center space-y-4"
@@ -101,7 +104,7 @@ const BooksList = () => {
               {/* Book Cover */}
               <div className="w-40 h-64 border border-gray-300 rounded-lg overflow-hidden shadow-md">
                 <img
-                  src={book.Cover ? `http://localhost:5000${book.Cover}` : "default_image.jpg"}
+                  src={book.Cover ? `http://localhost:5000${book.Cover}` : "/images/default_image.jpg"}
                   alt={book.Title}
                   className="w-full h-full object-cover"
                 />
@@ -109,7 +112,9 @@ const BooksList = () => {
               {/* Book Details */}
               <h3 className="text-xl font-bold">{book.Title}</h3>
               <p className="text-sm text-gray-500">by {book.AuthorName}</p>
-              <p className="text-sm text-gray-700">{book.Genres?.join(", ")}</p>
+              <p className="text-sm text-gray-700">
+                {Array.isArray(book.Genres) ? book.Genres.join(", ") : book.Genres}
+              </p>
               <p className="text-sm text-gray-600 text-center">{book.Description}</p>
             </div>
           ))

@@ -1,3 +1,4 @@
+
 // routes/bookRoutes.js
 
 const express = require("express");
@@ -110,46 +111,60 @@ router.put("/update/:bookId", async (req, res) => {
 // Fetch all books
 router.get("/", async (req, res) => {
   try {
-    const [book] = await db.promise().query("SELECT * FROM Book");
-    res.json(book);
+    const query = `
+      SELECT b.*, GROUP_CONCAT(g.GenreName) AS Genres
+      FROM book b
+      LEFT JOIN BookGenre bg ON b.BookID = bg.BookID
+      LEFT JOIN Genre g ON bg.GenreID = g.GenreID
+      GROUP BY b.BookID
+    `;
+    const [books] = await db.promise().query(query);
+    res.json(books);
   } catch (err) {
     console.error("Error fetching books:", err);
     res.status(500).json({ message: "Failed to fetch books" });
   }
 });
 
+
 // Fetch books by category or search term
 router.get("/search", async (req, res) => {
-  const { search, category } = req.query;
+  const { category, search } = req.query;
 
   try {
-      let query = `
-          SELECT b.BookID, b.Title, b.Description, b.Cover, b.AuthorName, 
-                 GROUP_CONCAT(g.GenreName) as Genres
-          FROM book b
-          LEFT JOIN BookGenre bg ON b.BookID = bg.BookID
-          LEFT JOIN Genre g ON bg.GenreID = g.GenreID
-          WHERE 1=1
-      `;
-      const params = [];
+    let query = `
+      SELECT b.*, GROUP_CONCAT(g.GenreName) AS Genres
+      FROM book b
+      LEFT JOIN BookGenre bg ON b.BookID = bg.BookID
+      LEFT JOIN Genre g ON bg.GenreID = g.GenreID
+      WHERE 1=1
+    `;
+    const params = [];
 
-      if (search) {
-          query += ` AND (b.Title LIKE ? OR b.AuthorName LIKE ? OR g.GenreName LIKE ?)`;
-          params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-      }
-      if (category) {
-          query += ` AND g.GenreName = ?`;
-          params.push(category);
-      }
+    // Filter by category (genre)
+    if (category) {
+      query += " AND g.GenreName = ?";
+      params.push(`#${category}`); // Ensure category includes the '#'
+    }
 
-      query += ` GROUP BY b.BookID`;
-      const [book] = await db.promise().query(query, params);
-      res.json(book);
+    // Search for title, author, or genre
+    if (search) {
+      query += " AND (b.Title LIKE ? OR b.AuthorName LIKE ? OR g.GenreName LIKE ?)";
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    query += " GROUP BY b.BookID";
+
+    const [books] = await db.promise().query(query, params);
+    res.json(books);
   } catch (err) {
-      console.error("Error fetching books:", err);
-      res.status(500).json({ message: "Failed to fetch books." });
+    console.error("Error searching books:", err);
+    res.status(500).json({ message: "Failed to search books" });
   }
 });
+
+
+
 
 
 // Delete a book (Admin only)
@@ -173,3 +188,4 @@ router.delete("/:bookId", authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
