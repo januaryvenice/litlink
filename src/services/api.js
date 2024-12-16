@@ -84,6 +84,6 @@ export const deleteBook = (bookId, token) =>
 
 // ------------------- Booklist Helpers -------------------
 
-// Fetch books with search term
-export const searchBooks = (searchTerm) =>
-  API.get(`/books/search?query=${encodeURIComponent(searchTerm)}`);
+// Fetch books with search term or category
+export const searchBooks = (query) =>
+  API.get(`/books/search${query ? `?search=${encodeURIComponent(query)}` : ""}`);

@@ -15,12 +15,12 @@ const Books = () => {
   const [userTypeID, setUserTypeID] = useState(null);
 
   const categories = [
-    { title: "Fiction", image: fictionImg, route: "/books-list/fiction" },
-    { title: "Non-Fiction", image: nonFictionImg, route: "/books-list/non-fiction" },
-    { title: "Romance", image: romanceImg, route: "/books-list/romance" },
-    { title: "Young Adult", image: youngAdultImg, route: "/books-list/young-adult" },
-    { title: "Fantasy", image: fantasyImg, route: "/books-list/fantasy" },
-    { title: "Humor", image: humorImg, route: "/books-list/humor" },
+    { title: "Fiction", image: fictionImg, route: "/books-list/Fiction" },
+    { title: "Non-Fiction", image: nonFictionImg, route: "/books-list/Non-Fiction" },
+    { title: "Romance", image: romanceImg, route: "/books-list/Romance" },
+    { title: "Young Adult", image: youngAdultImg, route: "/books-list/Young-Adult" },
+    { title: "Fantasy", image: fantasyImg, route: "/books-list/Fantasy" },
+    { title: "Humor", image: humorImg, route: "/books-list/Humor" },
   ];
 
   const placeholderSuggestions = [

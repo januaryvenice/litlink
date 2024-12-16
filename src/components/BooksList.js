@@ -1,65 +1,49 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
+import { searchBooks } from "../services/api";
 
 const BooksList = () => {
-  const [books, setBooks] = useState([]); // To be populated via backend API in the future
-  const [currentPage, setCurrentPage] = useState(1);
+  const [books, setBooks] = useState([]); // List of books fetched
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const booksPerPage = 10;
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { category } = useParams();
-  const userType = localStorage.getItem("userType"); // Assuming you store user type in localStorage
-
 
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search") || category;
 
-  // Simulate suggestions for the search bar
-  const placeholderSuggestions = [
-    "The Great Gatsby",
-    "Jane Eyre",
-    "#Fantasy",
-    "#Romance",
-    "To Kill a Mockingbird",
-    "Pride and Prejudice",
-  ];
-
   useEffect(() => {
-    // Placeholder logic: Replace this with API fetch logic in the future
-    setBooks([]);
+    const fetchBooks = async () => {
+      try {
+        const { data } = await searchBooks(searchTerm);
+        setBooks(data);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      }
+    };
+    fetchBooks();
   }, [searchTerm]);
 
-  // Pagination logic
-  const startIndex = (currentPage - 1) * booksPerPage;
-  const displayedBooks = books.slice(startIndex, startIndex + booksPerPage);
-  const totalPages = Math.ceil(books.length / booksPerPage);
-
-  // Handle pagination
-  const handlePageChange = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
-
-  // Handle input change for the search bar
-  const handleInputChange = (e) => {
+  // Search bar suggestion handler
+  const handleInputChange = async (e) => {
     const query = e.target.value;
     setSearchQuery(query);
 
     if (query.length > 0) {
-      const filteredSuggestions = placeholderSuggestions.filter((suggestion) =>
-        suggestion.toLowerCase().includes(query.toLowerCase())
-      );
-      setSuggestions(filteredSuggestions);
+      try {
+        const { data } = await searchBooks(query); // Fetch suggestions dynamically
+        const titles = data.map((book) => book.Title);
+        setSuggestions(titles);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      }
     } else {
       setSuggestions([]);
     }
   };
 
-  // Handle search submission
+  // Navigate to search results
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim() !== "") {
@@ -67,10 +51,9 @@ const BooksList = () => {
     }
   };
 
-
   return (
     <div className="w-full flex flex-col items-center px-4 sm:px-8 lg:px-16 mb-20">
-      {/* Search Bar */}
+      {/* Search Bar Section */}
       <div className="w-full max-w-3xl mt-10">
         <form onSubmit={handleSearch} className="relative">
           <input
@@ -100,37 +83,32 @@ const BooksList = () => {
             </ul>
           )}
         </form>
-        {(userType === "2" || userType === "3") && (
-  <button
-    onClick={() => navigate("/publish-book")}
-    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 my-4"
-  >
-    Add Book
-  </button>
-)}
-
       </div>
 
       {/* Header */}
       <h2 className="text-3xl md:text-4xl font-bold text-center mt-12 mb-8">
-        {searchTerm.startsWith("#") ? `${searchTerm.slice(1)} Books` : searchTerm}
+        {category ? `${category} Books` : "Search Results"}
       </h2>
 
       {/* Books List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-        {displayedBooks.length > 0 ? (
-          displayedBooks.map((book, index) => (
+        {books.length > 0 ? (
+          books.map((book) => (
             <div
-              key={index}
+              key={book.BookID}
               className="p-4 bg-white rounded-lg shadow-lg flex flex-col items-center space-y-4"
             >
-              <img
-                src={book.CoverImage || "path_to_default_image.jpg"}
-                alt={book.Title}
-                className="w-32 h-48 object-cover rounded-md"
-              />
+              {/* Book Cover */}
+              <div className="w-40 h-64 border border-gray-300 rounded-lg overflow-hidden shadow-md">
+                <img
+                  src={book.Cover ? `http://localhost:5000${book.Cover}` : "default_image.jpg"}
+                  alt={book.Title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Book Details */}
               <h3 className="text-xl font-bold">{book.Title}</h3>
-              <p className="text-sm text-gray-500">by {book.Author}</p>
+              <p className="text-sm text-gray-500">by {book.AuthorName}</p>
               <p className="text-sm text-gray-700">{book.Genres?.join(", ")}</p>
               <p className="text-sm text-gray-600 text-center">{book.Description}</p>
             </div>
@@ -139,44 +117,6 @@ const BooksList = () => {
           <p className="text-center text-gray-500 text-lg">No books found.</p>
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8 space-x-2">
-          {/* Previous Button */}
-          {currentPage > 1 && (
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="px-4 py-2 bg-gray-200 rounded-md shadow-md hover:bg-gray-300"
-            >
-              &lt;
-            </button>
-          )}
-
-          {/* Page Numbers */}
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-4 py-2 bg-white border rounded-md shadow-md ${
-                currentPage === i + 1 ? "underline font-bold" : ""
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          {/* Next Button */}
-          {currentPage < totalPages && (
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="px-4 py-2 bg-gray-200 rounded-md shadow-md hover:bg-gray-300"
-            >
-              &gt;
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

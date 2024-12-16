@@ -110,8 +110,8 @@ router.put("/update/:bookId", async (req, res) => {
 // Fetch all books
 router.get("/", async (req, res) => {
   try {
-    const [books] = await db.promise().query("SELECT * FROM Books");
-    res.json(books);
+    const [book] = await db.promise().query("SELECT * FROM Book");
+    res.json(book);
   } catch (err) {
     console.error("Error fetching books:", err);
     res.status(500).json({ message: "Failed to fetch books" });
@@ -120,28 +120,37 @@ router.get("/", async (req, res) => {
 
 // Fetch books by category or search term
 router.get("/search", async (req, res) => {
-  const { category, search } = req.query;
+  const { search, category } = req.query;
 
   try {
-    let query = "SELECT * FROM Books WHERE 1=1";
-    const params = [];
+      let query = `
+          SELECT b.BookID, b.Title, b.Description, b.Cover, b.AuthorName, 
+                 GROUP_CONCAT(g.GenreName) as Genres
+          FROM book b
+          LEFT JOIN BookGenre bg ON b.BookID = bg.BookID
+          LEFT JOIN Genre g ON bg.GenreID = g.GenreID
+          WHERE 1=1
+      `;
+      const params = [];
 
-    if (category) {
-      query += " AND Genres LIKE ?";
-      params.push(`%${category}%`);
-    }
-    if (search) {
-      query += " AND (Title LIKE ? OR Author LIKE ?)";
-      params.push(`%${search}%`, `%${search}%`);
-    }
+      if (search) {
+          query += ` AND (b.Title LIKE ? OR b.AuthorName LIKE ? OR g.GenreName LIKE ?)`;
+          params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      }
+      if (category) {
+          query += ` AND g.GenreName = ?`;
+          params.push(category);
+      }
 
-    const [books] = await db.promise().query(query, params);
-    res.json(books);
+      query += ` GROUP BY b.BookID`;
+      const [book] = await db.promise().query(query, params);
+      res.json(book);
   } catch (err) {
-    console.error("Error searching books:", err);
-    res.status(500).json({ message: "Failed to search books" });
+      console.error("Error fetching books:", err);
+      res.status(500).json({ message: "Failed to fetch books." });
   }
 });
+
 
 // Delete a book (Admin only)
 router.delete("/:bookId", authenticateToken, async (req, res) => {
@@ -154,7 +163,7 @@ router.delete("/:bookId", authenticateToken, async (req, res) => {
   }
 
   try {
-    const query = "DELETE FROM Books WHERE BookID = ?";
+    const query = "DELETE FROM Book WHERE BookID = ?";
     await db.promise().query(query, [bookId]);
     res.json({ message: "Book deleted successfully" });
   } catch (err) {
