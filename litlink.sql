@@ -16,6 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `authorrequests`
+--
+
+DROP TABLE IF EXISTS `authorrequests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `authorrequests` (
+  `RequestID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int NOT NULL,
+  `Status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `RequestDate` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`RequestID`),
+  KEY `authorrequests_ibfk_1` (`UserID`),
+  CONSTRAINT `authorrequests_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `authorrequests`
+--
+
+LOCK TABLES `authorrequests` WRITE;
+/*!40000 ALTER TABLE `authorrequests` DISABLE KEYS */;
+INSERT INTO `authorrequests` VALUES (1,4,'Pending','2024-12-16 13:10:49'),(3,16,'Pending','2024-12-16 18:19:59');
+/*!40000 ALTER TABLE `authorrequests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `blogpost`
 --
 
@@ -53,12 +81,14 @@ CREATE TABLE `book` (
   `BookID` int NOT NULL AUTO_INCREMENT,
   `Title` varchar(1000) NOT NULL,
   `Description` text,
-  `CoverImage` varchar(255) DEFAULT NULL,
-  `AuthorID` int NOT NULL,
+  `Cover` varchar(255) DEFAULT NULL,
+  `PublishedDate` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `UserID` int NOT NULL,
+  `AuthorName` varchar(255) NOT NULL,
   PRIMARY KEY (`BookID`),
-  KEY `AuthorID` (`AuthorID`),
-  CONSTRAINT `book_ibfk_1` FOREIGN KEY (`AuthorID`) REFERENCES `user` (`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `fk_userid_book` (`UserID`),
+  CONSTRAINT `fk_userid_book` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,6 +97,7 @@ CREATE TABLE `book` (
 
 LOCK TABLES `book` WRITE;
 /*!40000 ALTER TABLE `book` DISABLE KEYS */;
+INSERT INTO `book` VALUES (2,'Great Gatsby','Story of Gatsby','/uploads/books/1734355237109-gatsby.jpg','2024-12-16 13:20:37',8,'F. Scott'),(3,'Hunger Games','Games of death','/uploads/books/1734355502332-young-adult.JPG','2024-12-16 13:25:02',8,'Author'),(4,'How to kill a Mockingbird','Bird dies','/uploads/books/1734361082364-mockingbird.jpg','2024-12-16 14:58:02',8,'Some Guy');
 /*!40000 ALTER TABLE `book` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -119,6 +150,7 @@ CREATE TABLE `bookgenre` (
 
 LOCK TABLES `bookgenre` WRITE;
 /*!40000 ALTER TABLE `bookgenre` DISABLE KEYS */;
+INSERT INTO `bookgenre` VALUES (2,1),(3,1),(4,1),(3,2),(4,2);
 /*!40000 ALTER TABLE `bookgenre` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -166,8 +198,9 @@ CREATE TABLE `genre` (
   `GenreID` int NOT NULL AUTO_INCREMENT,
   `GenreName` varchar(100) NOT NULL,
   PRIMARY KEY (`GenreID`),
-  UNIQUE KEY `GenreName` (`GenreName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `GenreName` (`GenreName`),
+  UNIQUE KEY `unique_genre_name` (`GenreName`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,6 +209,7 @@ CREATE TABLE `genre` (
 
 LOCK TABLES `genre` WRITE;
 /*!40000 ALTER TABLE `genre` DISABLE KEYS */;
+INSERT INTO `genre` VALUES (2,'#Fiction'),(1,'#Humor');
 /*!40000 ALTER TABLE `genre` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -234,7 +268,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `Email` (`Email`),
   KEY `UserTypeID` (`UserTypeID`),
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`UserTypeID`) REFERENCES `usertype` (`UserTypeID`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -243,7 +277,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (4,'FakeUser','Fake123','Name','fake@email.com','$2b$10$ZkgwmShrxv7ZkVJGmoc0XO6Jxuzkdhlst.jeYy5lpnbAefQvn6J9y','profile_1734301976536_OIP.jpg',1,'2024-12-14 08:53:25','2024-12-16 06:32:56'),(5,'User123','User','Faker','user1@email.com','$2b$10$ABY76cHR2P52ARpk/ECJG.d78CezAQBhnPOLTUbku8eunmIhV9UHO','profile_1734310523401_young-adult.JPG',1,'2024-12-14 11:49:47','2024-12-16 08:55:23'),(6,'Juice','Lisa','Wang','juicer@email.com','$2b$10$JEPl9jPV7yS8v9QBPEWbQOyRXtAfSd7IVnhQQG.X84lI5q/R9rVSy',NULL,1,'2024-12-14 21:20:09','2024-12-14 21:21:10'),(7,'fff','kkk','ttt','ddd@email.com','$2b$10$uG2oKuerDBsV.kFTEvjmr.Mmtx/87rel7zAiDYfGu.3UiGuOlyJU2','/images/pfp.jpg',1,'2024-12-15 21:41:05','2024-12-15 21:41:05'),(8,'admin','Admin','Account','admin@example.com','8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',NULL,2,'2024-12-16 07:27:25','2024-12-16 07:27:25');
+INSERT INTO `user` VALUES (4,'FakeUser','Fake123','Name','fake@email.com','$2b$10$ZkgwmShrxv7ZkVJGmoc0XO6Jxuzkdhlst.jeYy5lpnbAefQvn6J9y','profile_1734301976536_OIP.jpg',1,'2024-12-14 08:53:25','2024-12-16 06:32:56'),(8,'admin','Admin','Account','admin@example.com','$2b$10$sfEyt.HlGLRiedDKeQHmj.K8xNOPYizYCAtey4ex9PCF3oz4cKIRK',NULL,2,'2024-12-16 07:27:25','2024-12-16 12:50:14'),(16,'test','t','f','test@email.com','$2b$10$rr78/Etrojnf0aRNlYzz8eJ2uCJZe36443YEBwRgNjT0Vq7G.h5L.',NULL,1,'2024-12-16 18:19:32','2024-12-16 18:19:32'),(18,'Author','t','f','author@email.com','$2b$10$uBAbkc8a8WhrnGJHmqvb5.0eyOUCnm7nLnLkRatuDcq6COkspD3Eu',NULL,3,'2024-12-16 22:27:49','2024-12-16 22:27:49');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -282,4 +316,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-16  9:56:26
+-- Dump completed on 2024-12-16 23:31:57
