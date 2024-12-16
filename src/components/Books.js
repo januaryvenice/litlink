@@ -106,7 +106,7 @@ const Books = () => {
   {/* Add Book Button */}
   {(userTypeID === 2 || userTypeID === 3) && (
     <button
-      onClick={() => navigate("/publish-book")}
+      onClick={() => navigate("/publish")}
       className="mt-4 sm:mt-0 sm:ml-4 px-5 py-2 bg-[#f5deb3] text-black font-semibold rounded-full hover:bg-[#e0cba5]"
     >
       Add Book

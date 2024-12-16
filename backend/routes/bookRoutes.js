@@ -2,47 +2,110 @@
 
 const express = require("express");
 const multer = require("multer");
+const path = require("path");
 const db = require("../config/db");
-const authenticate = require("../middleware/auth");
+const authenticateToken = require("../middleware/authenticateToken");
+
 
 const router = express.Router();
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./uploads/books"); // Ensure this directory exists
+    cb(null, "uploads/books/");
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, Date.now() + "-" + file.originalname);
   },
 });
 
 const upload = multer({ storage });
 
-// Add a new book (Author or Admin only)
-router.post("/add", authenticate, upload.single("coverImage"), async (req, res) => {
-  const { title, author, genres, description } = req.body;
-  const { userId, userTypeId } = req.user;
+// Publish a new book
+router.post("/publish", authenticateToken, upload.single("cover"), (req, res) => {
+  const { title, description, authorName, genres } = req.body;
+  const userId = req.user.id; // UserID derived from token
+  console.log("User ID from token:", req.user.id);
 
-  // Check user type
-  if (userTypeId !== 2 && userTypeId !== 3) {
-    return res.status(403).json({ message: "Unauthorized to add books" });
+  if (!title || !description || !req.file || !genres || !authorName) {
+    return res.status(400).json({ message: "All fields are required." });
   }
 
-  const coverImage = req.file ? req.file.filename : null;
+  const coverPath = `/uploads/books/${req.file.filename}`;
+  const publishDate = new Date();
+
+  const bookInsertQuery =
+    "INSERT INTO book (Title, Description, Cover, PublishedDate, UserID, AuthorName) VALUES (?, ?, ?, ?, ?, ?)";
+
+  db.query(
+    bookInsertQuery,
+    [title, description, coverPath, publishDate, userId, authorName],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Failed to publish book." });
+      }
+
+      const bookId = result.insertId; // Get the inserted book's ID
+      const genreList = JSON.parse(genres); // Parse the genres array
+
+      // Insert each genre into 'Genre' table and link to BookGenre
+      genreList.forEach((genreName) => {
+        genreName = genreName.startsWith("#") ? genreName : `#${genreName}`;
+
+        const genreInsertQuery = "INSERT IGNORE INTO Genre (GenreName) VALUES (?)";
+        db.query(genreInsertQuery, [genreName], (err) => {
+          if (err) console.error(err);
+
+          const bookGenreInsertQuery = `
+            INSERT INTO BookGenre (BookID, GenreID)
+            SELECT ?, GenreID FROM Genre WHERE GenreName = ?
+          `;
+
+          db.query(bookGenreInsertQuery, [bookId, genreName], (err) => {
+            if (err) console.error(`Failed to link genre '${genreName}'`, err);
+          });
+        });
+      });
+
+      res.status(201).json({ message: "Book published successfully!" });
+    }
+  );
+});
+
+
+//Updating book
+
+router.put("/update/:bookId", async (req, res) => {
+  const { bookId } = req.params;
+  const { title, description, authorName } = req.body;
+  const userId = req.user ? req.user.UserID : null;
+
+  if (!userId) {
+    return res.status(403).json({ message: "Unauthorized access." });
+  }
 
   try {
-    const query = `
-      INSERT INTO Books (Title, Author, Genres, Description, CoverImage, AddedBy)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    await db.promise().query(query, [title, author, genres, description, coverImage, userId]);
-    res.status(201).json({ message: "Book added successfully" });
-  } catch (err) {
-    console.error("Error adding book:", err);
-    res.status(500).json({ message: "Failed to add book" });
+    // Update only if the UserID matches
+    const [result] = await db.promise().query(
+      `UPDATE book 
+       SET Title = ?, Description = ?, AuthorName = ?
+       WHERE BookID = ? AND UserID = ?`,
+      [title, description, authorName, bookId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Book not found or access denied." });
+    }
+
+    res.json({ message: "Book updated successfully!" });
+  } catch (error) {
+    console.error("Error updating book:", error);
+    res.status(500).json({ message: "Failed to update book." });
   }
 });
+
+
 
 // Fetch all books
 router.get("/", async (req, res) => {
@@ -81,7 +144,7 @@ router.get("/search", async (req, res) => {
 });
 
 // Delete a book (Admin only)
-router.delete("/:bookId", authenticate, async (req, res) => {
+router.delete("/:bookId", authenticateToken, async (req, res) => {
   const { bookId } = req.params;
   const { userTypeId } = req.user;
 

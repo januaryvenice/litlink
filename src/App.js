@@ -10,6 +10,7 @@ import LandingPage from "./components/LandingPage";
 import ResetPassword from "./components/ResetPassword";
 import Books from "./components/Books";
 import BooksList from "./components/BooksList"; // Import BooksList
+import Publish from "./components/Publish";
 import useAuthStore from "./authStore";
 
 const App = () => {
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/books-list/:category" element={<BooksList />} />
           <Route path="/books-list" element={<BooksList />} />
+          <Route path="/publish" element={<Publish />} />
         </Routes>
       </Layout>
     </Router>

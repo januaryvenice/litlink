@@ -64,14 +64,17 @@ export const fetchBooks = () => API.get("/books");
 export const fetchBooksByCategory = (category) =>
   API.get(`/books/category/${category}`);
 
-// Publish a new book (Admin/Author only)
-export const publishBook = (bookData, token) =>
-  API.post("/books", bookData, {
+// Upload a new book
+export const publishBook = (formData, token) =>
+  API.post("/books/publish", formData, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // Ensure token is passed
       "Content-Type": "multipart/form-data",
     },
   });
+
+
+
 
 // Delete a book (Admin/Author only)
 export const deleteBook = (bookId, token) =>

@@ -67,20 +67,6 @@ const BooksList = () => {
     }
   };
 
-  
-  
-  
-  // Render Add Book button if the user is an admin (userTypeID = 2) or an author (userTypeID = 3)
-  {(userType === "2" || userType === "3") && (
-    <button
-      onClick={() => navigate("/publish-book")}
-      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 my-4"
-    >
-      Add Book
-    </button>
-  )}
-  
-
 
   return (
     <div className="w-full flex flex-col items-center px-4 sm:px-8 lg:px-16 mb-20">

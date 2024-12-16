@@ -1,125 +1,149 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { publishBook } from "../services/api"; // API function to handle book publishing
+import { publishBook } from "../services/api";
 
 const Publish = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    genre: "",
-    description: "",
-    coverImage: null,
-  });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [authorName, setAuthorName] = useState("");
+  const [genres, setGenres] = useState([""]);
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleGenreChange = (index, value) => {
+    const updatedGenres = [...genres];
+    updatedGenres[index] = value.startsWith("#") ? value : `#${value}`;
+    setGenres(updatedGenres);
   };
 
-  const handleFileChange = (e) => {
-    setFormData({ ...formData, coverImage: e.target.files[0] });
+  const addGenreField = () => setGenres([...genres, ""]);
+
+  const handleCoverChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverImage(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("author", formData.author);
-    formDataToSend.append("genre", formData.genre);
-    formDataToSend.append("description", formData.description);
-    if (formData.coverImage) {
-      formDataToSend.append("coverImage", formData.coverImage);
+  
+    // Validate form fields
+    if (!title || !description || !coverImage || !authorName || genres.some((g) => g === "")) {
+      alert("All fields are required, including author and cover image.");
+      return;
     }
-
+  
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("cover", coverImage);
+    formData.append("genres", JSON.stringify(genres)); // Send genres as JSON
+    formData.append("authorName", authorName);
+  
     try {
-      const response = await publishBook(formDataToSend);
-      setSuccess(response.data.message);
-      setError("");
-      setTimeout(() => navigate("/books"), 2000); // Redirect to books page after 2 seconds
-    } catch (err) {
-      setError("Failed to publish book. Please try again.");
-      setSuccess("");
+      const token = localStorage.getItem("token");
+      const response = await publishBook(formData, token);
+      console.log(response.data);
+      alert("Book published successfully!");
+    } catch (error) {
+      console.error("Error publishing book:", error.response?.data?.message || error.message);
+      alert("Failed to publish book.");
     }
   };
+  
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 bg-white shadow-md rounded">
-      <h1 className="text-2xl font-bold text-center mb-4">Publish a New Book</h1>
+    <div className="w-full flex justify-center px-4 sm:px-8 lg:px-16 py-8 bg-gray-100">
+      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl">
+        <h1 className="text-3xl font-bold mb-6 text-center">Publish a Book</h1>
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+          {/* Title Field */}
+          <div>
+            <label className="block text-lg font-medium mb-2">Title</label>
+            <input
+              type="text"
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-5 py-3 border border-gray-300 rounded-full text-lg"
+              required
+            />
+          </div>
 
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {success && <div className="text-green-500 mb-4">{success}</div>}
+          {/* Author Name Field */}
+<div>
+  <label className="block text-lg font-medium mb-2">Author Name</label>
+  <input
+    type="text"
+    placeholder="Author Name"
+    value={authorName}
+    onChange={(e) => setAuthorName(e.target.value)}
+    className="w-full px-5 py-3 border border-gray-300 rounded-full text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+    required
+  />
+</div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Title</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
-            required
-          />
-        </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Author</label>
-          <input
-            type="text"
-            name="author"
-            value={formData.author}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
-            required
-          />
-        </div>
+          {/* Description Field */}
+          <div>
+            <label className="block text-lg font-medium mb-2">Description</label>
+            <textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg h-40 resize-none"
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Genre</label>
-          <input
-            type="text"
-            name="genre"
-            value={formData.genre}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
-            placeholder="#genre (e.g., #Fantasy, #Romance)"
-            required
-          />
-        </div>
+          {/* Genres Field */}
+          <div>
+            <label className="block text-lg font-medium mb-2">Genres</label>
+            {genres.map((genre, index) => (
+              <div key={index} className="flex items-center mb-2">
+                <input
+                  type="text"
+                  value={genre}
+                  onChange={(e) => handleGenreChange(index, e.target.value)}
+                  placeholder="#Genre"
+                  className="w-full px-5 py-3 border border-gray-300 rounded-full text-lg"
+                  required
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addGenreField}
+              className="px-5 py-2 bg-[#f5deb3] text-black rounded-full hover:bg-[#e0cba5]"
+            >
+              Add Genre
+            </button>
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
-            rows="5"
-            required
-          />
-        </div>
+          {/* Cover Upload */}
+          <div className="flex flex-col items-center space-y-4">
+            <label className="text-lg font-medium">Upload Cover</label>
+            <label className="cursor-pointer px-5 py-3 bg-[#f5deb3] text-black rounded-full hover:bg-[#e0cba5]">
+              Choose File
+              <input type="file" accept="image/*" onChange={handleCoverChange} className="hidden" />
+            </label>
+            {coverPreview && (
+              <div className="w-40 h-64 border border-gray-300 rounded-lg overflow-hidden shadow-md">
+                <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Cover Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-purple-300"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded hover:bg-purple-700"
-        >
-          Publish Book
-        </button>
-      </form>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full px-5 py-3 bg-[#f5deb3] text-black rounded-full hover:bg-[#e0cba5] text-lg"
+          >
+            Publish Book
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -5,7 +5,7 @@ const db = require("../config/db");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const authenticate = require("../middleware/auth");
+const authenticate = require("../middleware/authenticateToken");
 
 const router = express.Router();
 
