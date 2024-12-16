@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { fetchUserDetails, uploadProfilePicture } from "../services/api";
 import axios from "axios";
-import editIcon from "../images/edit.jpg"; // Correct path for the edit icon
-import defaultPfp from "../images/pfp.jpg"; // Correct path for the default profile picture
-import useAuthStore from "../authStore";
+import editIcon from "../images/edit.jpg";
+import defaultPfp from "../images/pfp.jpg";
+import { deleteAccount, requestAuthor } from "../services/api";
 
-const Account = () => {
+const Account = ({ setLoggedIn }) => {
   const [userData, setUserData] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -13,7 +13,6 @@ const Account = () => {
   const [updatedValue, setUpdatedValue] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const { isLoggedIn } = useAuthStore();
   const userId = localStorage.getItem("userId");
 
   // Fetch user data
@@ -29,10 +28,10 @@ const Account = () => {
       }
     };
 
-    if (isLoggedIn && userId) {
+    if (userId) {
       fetchUserData();
     }
-  }, [isLoggedIn, userId]);
+  }, [userId]);
 
   // Handle profile picture upload
   const handleImageUpload = async () => {
@@ -71,17 +70,41 @@ const Account = () => {
     }
   };
 
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await deleteAccount(userId, token); // Attempt to delete account
+      } catch (error) {
+        console.error("Failed to delete account:", error); // Log the error, but continue
+      } finally {
+        setLoggedIn(false); // Log the user out
+        localStorage.clear(); // Clear local storage
+        window.location.href = "/login"; // Redirect to the login page
+      }
+    }
+  };
+
+  // Handle author request
+  const handleAuthorRequest = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await requestAuthor(userId, token);
+      setSuccessMessage("Author request sent to admin.");
+    } catch (error) {
+      setErrorMessage("Failed to send author request.");
+    }
+  };
+
   if (!userData) return <p>Loading...</p>;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-2xl p-8 bg-white rounded-lg shadow-lg">
         <div className="flex flex-col items-center mb-6">
-          {/* Display profile picture */}
           <img
-            src={
-              previewImage || userData.ProfilePicture || defaultPfp
-            } // Default to pfp.jpg if ProfilePicture is null
+            src={previewImage || userData.ProfilePicture || defaultPfp}
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover"
           />
@@ -151,7 +174,20 @@ const Account = () => {
             </div>
           ))}
         </div>
-
+        {userData.UserTypeID === 1 && (
+          <button
+            onClick={handleAuthorRequest}
+            className="text-blue-500 underline cursor-pointer mb-4"
+          >
+            Request to Become an Author
+          </button>
+        )}
+        <button
+          onClick={handleDeleteAccount}
+          className="text-black underline cursor-pointer"
+        >
+          Delete Account
+        </button>
 
         {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
         {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}

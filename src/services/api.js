@@ -1,4 +1,5 @@
 import axios from "axios";
+
 //testing commit
 const API = axios.create({
   baseURL: "http://localhost:5000/api", // Your backend URL
@@ -37,3 +38,26 @@ export const uploadProfilePicture = (userId, formData, token) =>
       "Content-Type": "multipart/form-data",
     },
   });
+
+
+  // Delete account
+export const deleteAccount = (userId, token) => {
+  return API.delete(`/users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+// Request to become an author
+export const requestAuthor = (userId, token) => {
+  return API.post(
+    "/users/request-author",
+    { userId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};

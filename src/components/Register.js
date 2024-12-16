@@ -47,7 +47,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-10"> {/* Added padding */}
       <h1 className="text-3xl font-bold text-black mb-10">
         Start Your Chapter. Build Your Community.
       </h1>

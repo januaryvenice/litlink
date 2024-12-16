@@ -14,7 +14,7 @@ import useAuthStore from "./authStore";
 
 const App = () => {
   const { isLoggedIn, username, setLoggedIn, setUsername } = useAuthStore();
-  
+
   return (
     <Router>
       <Layout
@@ -33,13 +33,15 @@ const App = () => {
             path="/login"
             element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />}
           />
-          <Route path="/about" element={<About />} />
-          <Route path="/account" element={<Account />} />
+          <Route
+            path="/account"
+            element={<Account setLoggedIn={setLoggedIn} />} // Pass setLoggedIn here
+          />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/books" element={<Books />} />
-          <Route path="/books-list/:category" element={<BooksList />} /> {/* Category route */}
-          <Route path="/books-list" element={<BooksList />} /> {/* Search route */}
-          <Route path="/account" element={<Account setLoggedIn={setLoggedIn} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/books-list/:category" element={<BooksList />} />
+          <Route path="/books-list" element={<BooksList />} />
         </Routes>
       </Layout>
     </Router>
