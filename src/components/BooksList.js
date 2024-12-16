@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
+
 const BooksList = () => {
   const [books, setBooks] = useState([]); // To be populated via backend API in the future
   const [currentPage, setCurrentPage] = useState(1);
@@ -10,6 +11,8 @@ const BooksList = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { category } = useParams();
+  const userType = localStorage.getItem("userType"); // Assuming you store user type in localStorage
+
 
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search") || category;
@@ -64,6 +67,21 @@ const BooksList = () => {
     }
   };
 
+  
+  
+  
+  // Render Add Book button if the user is an admin (userTypeID = 2) or an author (userTypeID = 3)
+  {(userType === "2" || userType === "3") && (
+    <button
+      onClick={() => navigate("/publish-book")}
+      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 my-4"
+    >
+      Add Book
+    </button>
+  )}
+  
+
+
   return (
     <div className="w-full flex flex-col items-center px-4 sm:px-8 lg:px-16 mb-20">
       {/* Search Bar */}
@@ -96,6 +114,15 @@ const BooksList = () => {
             </ul>
           )}
         </form>
+        {(userType === "2" || userType === "3") && (
+  <button
+    onClick={() => navigate("/publish-book")}
+    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 my-4"
+  >
+    Add Book
+  </button>
+)}
+
       </div>
 
       {/* Header */}

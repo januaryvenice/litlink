@@ -82,6 +82,7 @@ router.post("/login", (req, res) => {
         username: user.Username,
         email: user.Email,
         profilePicture: user.ProfilePicture,
+        userType: user.UserTypeID,
       },
     });
   });
@@ -220,32 +221,23 @@ router.post("/reset-password", async (req, res) => {
 
 
 // Delete Account
-router.delete("/:userId", authenticate, async (req, res) => {
+router.delete("/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
-    // Check if the user exists
-    const [user] = await db.promise().query("SELECT * FROM User WHERE UserID = ?", [userId]);
-    if (user.length === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // First, delete any related records from the authorrequests table
+    await db.promise().query("DELETE FROM authorrequests WHERE UserID = ?", [userId]);
 
-    // Delete the user's profile picture if it's not the default
-    const profilePicture = user[0].ProfilePicture;
-    if (profilePicture && profilePicture !== "pfp.jpg") {
-      const filePath = path.join(__dirname, "../uploads", profilePicture);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
-
-    // Delete the user
+    // Then, delete the user record
     await db.promise().query("DELETE FROM User WHERE UserID = ?", [userId]);
 
-    res.json({ message: "Account deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting account:", error);
-    res.status(500).json({ message: "Failed to delete account" });
+    res.json({ message: "User account and associated records deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ message: "Failed to delete user" });
   }
 });
+
 
 // Request to Become an Author
 router.post("/request-author", authenticate, async (req, res) => {
@@ -273,20 +265,25 @@ router.post("/request-author", authenticate, async (req, res) => {
   }
 });
 
-const handleDeleteAccount = async () => {
-  if (window.confirm("Are you sure you want to delete your account?")) {
-    try {
-      const token = localStorage.getItem("token");
-      await deleteAccount(userId, token); // Attempt to delete account
-    } catch (error) {
-      console.error("Failed to delete account:", error); // Log the error, but continue
-    } finally {
-      setLoggedIn(false); // Log the user out
-      localStorage.clear(); // Clear local storage
-      window.location.href = "/"; // Redirect to the homepage
-    }
+// Delete Account Route
+router.delete("/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Delete records from related tables
+    await db.promise().query("DELETE FROM AuthorRequests WHERE UserID = ?", [userId]);
+    await db.promise().query("DELETE FROM Books WHERE AuthorID = ?", [userId]); // Example for books table
+
+    // Delete the user record
+    await db.promise().query("DELETE FROM User WHERE UserID = ?", [userId]);
+
+    res.json({ message: "User account and associated records deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ message: "Failed to delete user" });
   }
-};
+});
+
 
 
 module.exports = router;

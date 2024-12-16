@@ -1,9 +1,11 @@
 import axios from "axios";
 
-//testing commit
+// Axios instance configuration
 const API = axios.create({
   baseURL: "http://localhost:5000/api", // Your backend URL
 });
+
+// ------------------- User APIs -------------------
 
 // Login
 export const login = (email, password) =>
@@ -39,25 +41,46 @@ export const uploadProfilePicture = (userId, formData, token) =>
     },
   });
 
-
-  // Delete account
-export const deleteAccount = (userId, token) => {
-  return API.delete(`/users/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+// Delete account
+export const deleteAccount = (userId, token) =>
+  API.delete(`/users/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-};
 
 // Request to become an author
-export const requestAuthor = (userId, token) => {
-  return API.post(
+export const requestAuthor = (userId, token) =>
+  API.post(
     "/users/request-author",
     { userId },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    { headers: { Authorization: `Bearer ${token}` } }
   );
-};
+
+// ------------------- Book APIs -------------------
+
+// Fetch all books
+export const fetchBooks = () => API.get("/books");
+
+// Fetch books by category
+export const fetchBooksByCategory = (category) =>
+  API.get(`/books/category/${category}`);
+
+// Publish a new book (Admin/Author only)
+export const publishBook = (bookData, token) =>
+  API.post("/books", bookData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+// Delete a book (Admin/Author only)
+export const deleteBook = (bookId, token) =>
+  API.delete(`/books/${bookId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+// ------------------- Booklist Helpers -------------------
+
+// Fetch books with search term
+export const searchBooks = (searchTerm) =>
+  API.get(`/books/search?query=${encodeURIComponent(searchTerm)}`);
