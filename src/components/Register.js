@@ -10,6 +10,7 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    userType: "1", // Default to User (1)
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,18 +24,25 @@ const Register = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-
+  
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-
+  
     try {
-      const { username, firstName, lastName, email, password } = formData;
+      const { username, firstName, lastName, email, password, userType } = formData;
       const response = await axios.post(
         "http://localhost:5000/api/users/register",
-        { username, firstName, lastName, email, password },
+        {
+          username,
+          firstName,
+          lastName,
+          email,
+          password,
+          userType: parseInt(userType, 10), // Explicitly parse userType to an integer
+        },
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -45,9 +53,10 @@ const Register = () => {
       setError(err.response?.data?.message || "Something went wrong");
     }
   };
+  
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-10"> {/* Added padding */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-10">
       <h1 className="text-3xl font-bold text-black mb-10">
         Start Your Chapter. Build Your Community.
       </h1>
@@ -172,6 +181,27 @@ const Register = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-purple-500 focus:border-purple-500"
               required
             />
+          </div>
+
+          {/* Temporary User Type Dropdown */}
+          <div>
+            <label
+              htmlFor="userType"
+              className="block text-lg font-medium text-gray-700 mb-2"
+            >
+              User Type (Temporary Feature)
+            </label>
+            <select
+              id="userType"
+              name="userType"
+              value={formData.userType}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm text-lg focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="1">User</option>
+              <option value="2">Admin</option>
+              <option value="3">Author</option>
+            </select>
           </div>
 
           {/* Error/Success Messages */}

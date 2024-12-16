@@ -24,7 +24,7 @@ const upload = multer({ storage });
 
 // Register Route
 router.post("/register", async (req, res) => {
-  const { username, firstName, lastName, email, password } = req.body;
+  const { username, firstName, lastName, email, password, userType } = req.body;
 
   try {
     const checkUserQuery = "SELECT * FROM User WHERE Username = ? OR Email = ?";
@@ -36,16 +36,24 @@ router.post("/register", async (req, res) => {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
+
       const insertUserQuery = `
         INSERT INTO User (Username, FirstName, LastName, Email, Password, UserTypeID, ProfilePicture)
-        VALUES (?, ?, ?, ?, ?, 1, NULL)
+        VALUES (?, ?, ?, ?, ?, ?, NULL)
       `;
+      
+      db.query(
+        insertUserQuery,
+        [username, firstName, lastName, email, hashedPassword, parseInt(userType, 10)], // Ensure userType is an integer
+        (err) => {
+          if (err) {
+            console.error("Error during user insertion:", err); // Log the exact error
+            return res.status(500).json({ message: "Failed to register user", error: err.sqlMessage });
+          }
 
-      db.query(insertUserQuery, [username, firstName, lastName, email, hashedPassword], (err) => {
-        if (err) return res.status(500).json({ message: "Failed to register user" });
-
-        res.status(201).json({ message: "User registered successfully!" });
-      });
+          res.status(201).json({ message: "User registered successfully!" });
+        }
+      );
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -82,7 +90,7 @@ router.post("/login", (req, res) => {
         username: user.Username,
         email: user.Email,
         profilePicture: user.ProfilePicture,
-        userType: user.UserTypeID,
+        userType: user.UserType,
       },
     });
   });
