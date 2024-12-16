@@ -5,10 +5,12 @@ const Layout = ({ children, headerContent }) => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header>{headerContent}</header>
+      <header className="bg-white shadow">{headerContent}</header>
 
       {/* Main Content */}
-      <main className="flex-1 p-4">{children}</main>
+      <main className="flex-1 p-6 bg-gray-100">
+        {children}
+      </main>
 
       {/* Footer */}
       <Footer />

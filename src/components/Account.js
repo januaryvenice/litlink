@@ -1,76 +1,161 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { fetchUserDetails, uploadProfilePicture } from "../services/api";
+import axios from "axios";
+import editIcon from "../images/edit.jpg"; // Correct path for the edit icon
+import defaultPfp from "../images/pfp.jpg"; // Correct path for the default profile picture
+import useAuthStore from "../authStore";
 
 const Account = () => {
+  const [userData, setUserData] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [editingField, setEditingField] = useState(null);
+  const [updatedValue, setUpdatedValue] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const { isLoggedIn } = useAuthStore();
+  const userId = localStorage.getItem("userId");
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await fetchUserDetails(userId, token);
+        setUserData(data);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+        setErrorMessage("Failed to load user data.");
+      }
+    };
+
+    if (isLoggedIn && userId) {
+      fetchUserData();
+    }
+  }, [isLoggedIn, userId]);
+
+  // Handle profile picture upload
+  const handleImageUpload = async () => {
+    const formData = new FormData();
+    formData.append("image", selectedImage);
+
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await uploadProfilePicture(userId, formData, token);
+      setUserData((prev) => ({ ...prev, ProfilePicture: data.imageUrl }));
+      setPreviewImage(null);
+      setSelectedImage(null);
+      setSuccessMessage("Profile picture updated successfully!");
+    } catch (error) {
+      console.error("Failed to upload profile picture:", error);
+      setErrorMessage("Failed to upload profile picture.");
+    }
+  };
+
+  // Handle saving field updates
+  const handleSaveChanges = async (field) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/users/update-field",
+        { userId, field, value: updatedValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setUserData((prev) => ({ ...prev, [field]: updatedValue }));
+      setEditingField(null);
+      setSuccessMessage(`${field} updated successfully!`);
+    } catch (error) {
+      console.error("Failed to update field:", error);
+      setErrorMessage("Failed to update field.");
+    }
+  };
+
+  if (!userData) return <p>Loading...</p>;
+
   return (
-    <div className="bg-white py-8 px-6 md:px-12 lg:px-24 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-center mb-10">Your Account</h2>
-      
-      {/* Profile Picture Section */}
-      <div className="flex flex-col items-center mb-10">
-        <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-          {/* Placeholder for profile picture */}
-          <span className="text-gray-400">Image</span>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-2xl p-8 bg-white rounded-lg shadow-lg">
+        <div className="flex flex-col items-center mb-6">
+          {/* Display profile picture */}
+          <img
+            src={
+              previewImage || userData.ProfilePicture || defaultPfp
+            } // Default to pfp.jpg if ProfilePicture is null
+            alt="Profile"
+            className="w-32 h-32 rounded-full object-cover"
+          />
+          <div className="mt-4">
+            <label className="px-4 py-2 bg-gray-800 text-white rounded cursor-pointer">
+              Choose File
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  setSelectedImage(e.target.files[0]);
+                  setPreviewImage(URL.createObjectURL(e.target.files[0]));
+                }}
+                className="hidden"
+              />
+            </label>
+            {selectedImage && (
+              <button
+                onClick={handleImageUpload}
+                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Upload
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex space-x-4">
-          <button className="bg-black text-white py-2 px-4 rounded">Upload New Picture</button>
-          <button className="bg-gray-300 text-black py-2 px-4 rounded">Delete</button>
+
+        <div className="space-y-6">
+          {["FirstName", "LastName", "Email", "Password"].map((field) => (
+            <div key={field} className="mb-4">
+              <label className="block text-lg font-medium text-gray-700">{field}</label>
+              {editingField === field ? (
+                <div className="flex space-x-2">
+                  <input
+                    type={field === "Password" ? "password" : "text"}
+                    value={updatedValue}
+                    onChange={(e) => setUpdatedValue(e.target.value)}
+                    className="w-full px-4 py-2 border rounded"
+                  />
+                  <button
+                    onClick={() => handleSaveChanges(field)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingField(null)}
+                    className="text-black underline cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <span>{field === "Password" ? "********" : userData[field]}</span>
+                  <img
+                    src={editIcon}
+                    alt="Edit"
+                    className="w-6 h-6 cursor-pointer"
+                    onClick={() => {
+                      setEditingField(field);
+                      setUpdatedValue(userData[field]);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+
+
+        {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
+        {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
       </div>
-      
-      {/* Form Section */}
-      <form>
-        {/* Full Name */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-2">Full Name</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="First Name"
-              className="border border-gray-300 rounded w-full py-2 px-3"
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              className="border border-gray-300 rounded w-full py-2 px-3"
-            />
-          </div>
-        </div>
-        
-        {/* Contact Email */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-2">Contact Email</h3>
-          <div className="flex items-center gap-4">
-            <input
-              type="email"
-              placeholder="Email"
-              className="border border-gray-300 rounded w-full py-2 px-3"
-            />
-            <button className="bg-black text-white py-2 px-4 rounded">Add Another Email</button>
-          </div>
-        </div>
-        
-        {/* Password */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-2">Password</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="password"
-              placeholder="Current Password"
-              className="border border-gray-300 rounded w-full py-2 px-3"
-            />
-            <input
-              type="password"
-              placeholder="New Password"
-              className="border border-gray-300 rounded w-full py-2 px-3"
-            />
-          </div>
-        </div>
-        
-        {/* Save Changes Button */}
-        <div className="text-center">
-          <button className="bg-black text-white py-3 px-6 rounded">Save Changes</button>
-        </div>
-      </form>
     </div>
   );
 };
