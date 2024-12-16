@@ -174,6 +174,7 @@ const Account = ({ setLoggedIn }) => {
             </div>
           ))}
         </div>
+        <div className="space-y-6"></div>
         {userData.UserTypeID === 1 && (
           <button
             onClick={handleAuthorRequest}
@@ -182,6 +183,7 @@ const Account = ({ setLoggedIn }) => {
             Request to Become an Author
           </button>
         )}
+        <div className="space-y-6"></div>
         <button
           onClick={handleDeleteAccount}
           className="text-black underline cursor-pointer"
